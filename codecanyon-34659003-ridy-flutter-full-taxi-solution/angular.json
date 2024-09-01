@@ -1,0 +1,895 @@
+{
+  "version": 1,
+  "projects": {
+    "admin-api": {
+      "$schema": "../../node_modules/nx/schemas/project-schema.json",
+      "root": "apps/admin-api",
+      "sourceRoot": "apps/admin-api/src",
+      "projectType": "application",
+      "architect": {
+        "build": {
+          "dependsOn": [
+            {
+              "target": "compile",
+              "projects": "self"
+            }
+          ],
+          "executor": "nx:run-commands",
+          "options": {
+            "commands": [
+              {
+                "command": "tsc libs/database/src/lib/migration/*.ts --outDir dist/apps/admin-api/migration"
+              }
+            ]
+          },
+          "configurations": {
+            "production": {}
+          }
+        },
+        "compile": {
+          "builder": "@nrwl/node:webpack",
+          "outputs": [
+            "{options.outputPath}"
+          ],
+          "options": {
+            "deleteOutputPath": false,
+            "outputPath": "dist/apps/admin-api",
+            "main": "apps/admin-api/src/main.ts",
+            "tsConfig": "apps/admin-api/tsconfig.app.json",
+            "assets": [
+              "apps/admin-api/src/assets"
+            ],
+            "webpackConfig": "apps/admin-api/webpack.config.js",
+            "generatePackageJson": true
+          },
+          "configurations": {
+            "production": {
+              "optimization": true,
+              "extractLicenses": true,
+              "inspect": false,
+              "fileReplacements": [
+                {
+                  "replace": "apps/admin-api/src/environments/environment.ts",
+                  "with": "apps/admin-api/src/environments/environment.prod.ts"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "builder": "@nrwl/node:node",
+          "options": {
+            "buildTarget": "admin-api:compile",
+            "inspect": true,
+            "port": 9233
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "apps/admin-api/**/*.ts"
+            ]
+          },
+          "outputs": [
+            "{options.outputFile}"
+          ]
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/apps/admin-api"
+          ],
+          "options": {
+            "jestConfig": "apps/admin-api/jest.config.ts",
+            "passWithNoTests": true
+          }
+        }
+      },
+      "tags": []
+    },
+    "admin-gql-gen": {
+      "$schema": "../../node_modules/nx/schemas/project-schema.json",
+      "projectType": "application",
+      "root": "apps/admin-gql-gen",
+      "sourceRoot": "apps/admin-gql-gen/src",
+      "architect": {
+        "build": {
+          "executor": "nx:run-commands",
+          "options": {
+            "commands": [
+              "npx graphql-codegen --config apps/admin-panel/codegen.yml"
+            ]
+          }
+        },
+        "serve": {
+          "executor": "nx:run-commands",
+          "options": {
+            "commands": [
+              "npx graphql-codegen --config apps/admin-panel/codegen.yml --watch"
+            ]
+          }
+        }
+      },
+      "tags": []
+    },
+    "admin-panel": {
+      "$schema": "../../node_modules/nx/schemas/project-schema.json",
+      "projectType": "application",
+      "root": "apps/admin-panel",
+      "sourceRoot": "apps/admin-panel/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/apps/admin-panel",
+            "index": "apps/admin-panel/src/index.html",
+            "main": "apps/admin-panel/src/main.ts",
+            "polyfills": "apps/admin-panel/src/polyfills.ts",
+            "tsConfig": "apps/admin-panel/tsconfig.app.json",
+            "aot": true,
+            "assets": [
+              "apps/admin-panel/src/favicon.ico",
+              "apps/admin-panel/src/assets"
+            ],
+            "styles": [
+              "node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
+              "apps/admin-panel/src/styles.scss"
+            ],
+            "scripts": []
+          },
+          "defaultConfiguration": "development",
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "3mb",
+                  "maximumError": "5mb"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "apps/admin-panel/src/environments/environment.ts",
+                  "with": "apps/admin-panel/src/environments/environment.prod.ts"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "admin-panel:build",
+            "hmr": true
+          },
+          "configurations": {
+            "production": {
+              "browserTarget": "admin-panel:build:production"
+            }
+          }
+        },
+        "extract-i18n": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "ngx-translate-extract --input src --output src/assets/i18n/{en,es,bn,de,hi,ko,id,ja,pt,ru,ur,zh,fr,ar,hy}.json --clean --format namespaced-json",
+            "cwd": "apps/admin-panel"
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "apps/admin-panel/src/**/*.ts",
+              "apps/admin-panel/src/**/*.html"
+            ]
+          },
+          "outputs": [
+            "{options.outputFile}"
+          ]
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/apps/admin-panel"
+          ],
+          "options": {
+            "jestConfig": "apps/admin-panel/jest.config.ts",
+            "passWithNoTests": true
+          }
+        }
+      },
+      "tags": []
+    },
+    "database": {
+      "$schema": "../../node_modules/nx/schemas/project-schema.json",
+      "root": "libs/database",
+      "sourceRoot": "libs/database/src",
+      "projectType": "library",
+      "architect": {
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/database/**/*.ts"
+            ]
+          },
+          "outputs": [
+            "{options.outputFile}"
+          ]
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/libs/database"
+          ],
+          "options": {
+            "jestConfig": "libs/database/jest.config.ts",
+            "passWithNoTests": true
+          }
+        }
+      },
+      "tags": []
+    },
+    "driver-api": {
+      "$schema": "../../node_modules/nx/schemas/project-schema.json",
+      "root": "apps/driver-api",
+      "sourceRoot": "apps/driver-api/src",
+      "projectType": "application",
+      "architect": {
+        "build": {
+          "builder": "@nrwl/node:webpack",
+          "outputs": [
+            "{options.outputPath}"
+          ],
+          "options": {
+            "outputPath": "dist/apps/driver-api",
+            "main": "apps/driver-api/src/main.ts",
+            "tsConfig": "apps/driver-api/tsconfig.app.json",
+            "assets": [
+              "apps/driver-api/src/assets"
+            ],
+            "webpackConfig": "apps/driver-api/webpack.config.js",
+            "generatePackageJson": true
+          },
+          "configurations": {
+            "production": {
+              "optimization": true,
+              "extractLicenses": true,
+              "inspect": false,
+              "fileReplacements": [
+                {
+                  "replace": "apps/driver-api/src/environments/environment.ts",
+                  "with": "apps/driver-api/src/environments/environment.prod.ts"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "builder": "@nrwl/node:node",
+          "options": {
+            "buildTarget": "driver-api:build",
+            "inspect": true,
+            "port": 9230
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "apps/driver-api/**/*.ts"
+            ]
+          },
+          "outputs": [
+            "{options.outputFile}"
+          ]
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/apps/driver-api"
+          ],
+          "options": {
+            "jestConfig": "apps/driver-api/jest.config.ts",
+            "passWithNoTests": true
+          }
+        }
+      },
+      "tags": []
+    },
+    "driver-app": {
+      "$schema": "../../node_modules/nx/schemas/project-schema.json",
+      "root": "apps/driver-app",
+      "sourceRoot": "apps/driver-app/src",
+      "projectType": "application",
+      "architect": {
+        "analyze": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter analyze",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "clean": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter clean",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "format": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter format apps/driver-app/*",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "test": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter test",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "assemble": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter assemble",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "attach": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter attach",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "drive": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter drive",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "genL10n": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter gen-l10n",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "install": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter install",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "run": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter run",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "buildAar": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter build aar",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "buildApk": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter build apk",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "buildAppbundle": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter build appbundle",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "buildBundle": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter build bundle",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "buildIos": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter build ios",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "buildIosFramework": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter build ios-framework",
+            "cwd": "apps/driver-app"
+          }
+        },
+        "buildIpa": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter build ipa",
+            "cwd": "apps/driver-app"
+          }
+        }
+      },
+      "tags": []
+    },
+    "fleet-api": {
+      "$schema": "../../node_modules/nx/schemas/project-schema.json",
+      "root": "apps/fleet-api",
+      "sourceRoot": "apps/fleet-api/src",
+      "projectType": "application",
+      "architect": {
+        "build": {
+          "builder": "@nrwl/node:webpack",
+          "outputs": [
+            "{options.outputPath}"
+          ],
+          "options": {
+            "outputPath": "dist/apps/fleet-api",
+            "main": "apps/fleet-api/src/main.ts",
+            "tsConfig": "apps/fleet-api/tsconfig.app.json",
+            "assets": [
+              "apps/fleet-api/src/assets"
+            ],
+            "webpackConfig": "apps/fleet-api/webpack.config.js",
+            "generatePackageJson": true
+          },
+          "configurations": {
+            "production": {
+              "optimization": true,
+              "extractLicenses": true,
+              "inspect": false,
+              "fileReplacements": [
+                {
+                  "replace": "apps/fleet-api/src/environments/environment.ts",
+                  "with": "apps/fleet-api/src/environments/environment.prod.ts"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "builder": "@nrwl/node:node",
+          "options": {
+            "buildTarget": "fleet-api:build",
+            "inspect": true,
+            "port": 9233
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "apps/fleet-api/**/*.ts"
+            ]
+          },
+          "outputs": [
+            "{options.outputFile}"
+          ]
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/apps/fleet-api"
+          ],
+          "options": {
+            "jestConfig": "apps/fleet-api/jest.config.ts",
+            "passWithNoTests": true
+          }
+        }
+      },
+      "tags": []
+    },
+    "fleet-app": {
+      "root": "apps/fleet-app",
+      "sourceRoot": "apps/fleet-app/src",
+      "projectType": "application",
+      "architect": {
+        "analyze": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter analyze",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "clean": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter clean",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "format": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter format apps/fleet-app/*",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "test": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter test",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "assemble": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter assemble",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "attach": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter attach",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "drive": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter drive",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "genL10n": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter gen-l10n",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "install": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter install",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "run": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter run",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "buildAar": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter build aar",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "buildApk": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter build apk",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "buildAppbundle": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter build appbundle",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "buildBundle": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter build bundle",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "buildIos": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter build ios",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "buildIosFramework": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter build ios-framework",
+            "cwd": "apps/fleet-app"
+          }
+        },
+        "buildIpa": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "command": "flutter build ipa",
+            "cwd": "apps/fleet-app"
+          }
+        }
+      },
+      "tags": []
+    },
+    "payment-gateways": {
+      "$schema": "../../node_modules/nx/schemas/project-schema.json",
+      "root": "apps/payment-gateways",
+      "sourceRoot": "apps/payment-gateways/src",
+      "projectType": "application",
+      "architect": {
+        "build": {
+          "builder": "@nrwl/node:webpack",
+          "outputs": [
+            "{options.outputPath}"
+          ],
+          "options": {
+            "outputPath": "dist/apps/payment-gateways",
+            "main": "apps/payment-gateways/src/main.ts",
+            "tsConfig": "apps/payment-gateways/tsconfig.app.json",
+            "assets": [
+              "apps/payment-gateways/src/assets"
+            ],
+            "generatePackageJson": true
+          },
+          "configurations": {
+            "production": {
+              "optimization": true,
+              "extractLicenses": true,
+              "inspect": false,
+              "fileReplacements": [
+                {
+                  "replace": "apps/payment-gateways/src/environments/environment.ts",
+                  "with": "apps/payment-gateways/src/environments/environment.prod.ts"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "builder": "@nrwl/node:node",
+          "options": {
+            "buildTarget": "payment-gateways:build",
+            "inspect": true,
+            "port": 9232
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "apps/payment-gateways/**/*.ts"
+            ]
+          },
+          "outputs": [
+            "{options.outputFile}"
+          ]
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/apps/payment-gateways"
+          ],
+          "options": {
+            "jestConfig": "apps/payment-gateways/jest.config.ts",
+            "passWithNoTests": true
+          }
+        }
+      },
+      "tags": []
+    },
+    "rider-api": {
+      "$schema": "../../node_modules/nx/schemas/project-schema.json",
+      "root": "apps/rider-api",
+      "sourceRoot": "apps/rider-api/src",
+      "projectType": "application",
+      "architect": {
+        "build": {
+          "builder": "@nrwl/node:webpack",
+          "outputs": [
+            "{options.outputPath}"
+          ],
+          "options": {
+            "outputPath": "dist/apps/rider-api",
+            "main": "apps/rider-api/src/main.ts",
+            "tsConfig": "apps/rider-api/tsconfig.app.json",
+            "assets": [
+              "apps/rider-api/src/assets"
+            ],
+            "webpackConfig": "apps/rider-api/webpack.config.js",
+            "generatePackageJson": true
+          },
+          "configurations": {
+            "production": {
+              "optimization": true,
+              "extractLicenses": true,
+              "inspect": false,
+              "fileReplacements": [
+                {
+                  "replace": "apps/rider-api/src/environments/environment.ts",
+                  "with": "apps/rider-api/src/environments/environment.prod.ts"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "builder": "@nrwl/node:node",
+          "options": {
+            "buildTarget": "rider-api:build",
+            "inspect": true,
+            "port": 9231
+          }
+        },
+        "lint": {
+          "builder": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "apps/rider-api/**/*.ts"
+            ]
+          },
+          "outputs": [
+            "{options.outputFile}"
+          ]
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/apps/rider-api"
+          ],
+          "options": {
+            "jestConfig": "apps/rider-api/jest.config.ts",
+            "passWithNoTests": true
+          }
+        }
+      },
+      "tags": []
+    },
+    "rider-app": {
+      "$schema": "../../node_modules/nx/schemas/project-schema.json",
+      "root": "apps/rider-app",
+      "sourceRoot": "apps/rider-app/src",
+      "projectType": "application",
+      "architect": {
+        "analyze": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter analyze",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "clean": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter clean",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "format": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter format apps/rider-app/*",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "test": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter test",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "assemble": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter assemble",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "attach": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter attach",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "drive": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter drive",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "genL10n": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter gen-l10n",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "install": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter install",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "run": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter run",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "buildAar": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter build aar",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "buildApk": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter build apk",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "buildAppbundle": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter build appbundle",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "buildBundle": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter build bundle",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "buildIos": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter build ios",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "buildIosFramework": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter build ios-framework",
+            "cwd": "apps/rider-app"
+          }
+        },
+        "buildIpa": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "flutter build ipa",
+            "cwd": "apps/rider-app"
+          }
+        }
+      },
+      "tags": []
+    }
+  }
+}
